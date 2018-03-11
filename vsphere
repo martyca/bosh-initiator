@@ -100,6 +100,13 @@ case "$response" in
         ;;
 esac
 }
+function boshalias {
+  bosh -e $internalip alias-env "vsphere" --ca-cert <(bosh int ./creds.yml --path /director_ssl/ca)
+}
+function boshlogin {
+  boshpassword=$(bosh int ./creds.yml --path /admin_password)
+  bosh -e vsphere login --client admin --client-secret ${boshpassword}
+}
 
 getdirectorname
 getinternalcidr
@@ -136,3 +143,13 @@ bosh create-env bosh-deployment/bosh.yml \
   -v vcenter_vms=${vcentervmsfolder} \
   -v vcenter_disks=${vcenterdisksfolder} \
   -v vcenter_cluster=${vcentercluster}
+
+echo
+echo "Bosh deployment done"
+echo
+
+boshalias
+boshlogin
+echo
+echo "Login succeeded: "
+echo
