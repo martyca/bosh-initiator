@@ -1,0 +1,138 @@
+#!/bin/bash
+
+defdirectorname="bosh-1"
+definternalcidr="10.0.0.0/24"
+definternalgw="10.0.0.1"
+definternalip="10.0.0.6"
+defnetworkname="VM Network"
+defvcenterdc="my-dc"
+defvcenterds="datastore0"
+defvcenterip="192.168.0.10"
+defvcenteruser="root"
+vcenterpassword=""
+defvcentertemplatesfolder="bosh-1-templates"
+defvcentervmsfolder="bosh-1-vms"
+defvcenterdisksfolder="bosh-1-disks"
+defvcentercluster="cluster1"
+
+function getdirectorname {
+read -p "Enter director name [$defdirectorname]: " directorname
+directorname=${directorname:-$defdirectorname}
+}
+function getinternalcidr {
+read -p "Enter internal network range [$definternalcidr]: " internalcidr
+internalcidr=${internalcidr:-$definternalcidr}
+}
+function getinternalgw {
+read -p "Enter internal gateway [$definternalgw]: " internalgw
+internalgw=${internalgw:-$definternalgw}
+}
+function getinternalip {
+read -p "Enter bosh director ip [$definternalip]: " internalip
+internalip=${internalip:-$definternalip}
+}
+function getnetworkname {
+read -p "Enter vpshere network to use [$defnetworkname]: " networkname
+networkname=${networkname:-$defnetworkname}
+}
+function getvcenterdc {
+read -p "Enter vsphere datacenter to use [$defvcenterdc]: " vcenterdc
+vcenterdc=${vcenterdc:-$defvcenterdc}
+}
+function getvcenterds {
+read -p "Enter vsphere datastore to use [$defvcenterds]: " vcenterds
+vcenterds=${vcenterds:-$defvcenterds}
+}
+function getvcenterip {
+read -p "Enter vsphere ip address [$defvcenterip]: " vcenterip
+vcenterip=${vcenterip:-$defvcenterip}
+}
+function getvcenteruser {
+read -p "Enter vsphere privileged user [$defvcenteruser]: " vcenteruser
+vcenteruser=${vcenteruser:-$defvcenteruser}
+}
+function getpassword {
+read -s -p "Enter vsphere privileged user password: " vcenterpassword
+echo
+}
+function getvcentertemplatesfolder {
+read -p "Enter vsphere folder to use for templates [$defvcentertemplatesfolder]: " vcentertemplatesfolder
+vcentertemplatesfolder=${vcentertemplatesfolder:-$defvcentertemplatesfolder}
+}
+function getvcentervmsfolder {
+read -p "Enter vsphere folder to use for vms [$defvcentervmsfolder]: " vcentervmsfolder
+vcentervmsfolder=${vcentervmsfolder:-$defvcentervmsfolder}
+}
+function getvcenterdisksfolder {
+read -p "Enter vsphere folder to use for disks [$defvcenterdisksfolder]: " vcenterdisksfolder
+vcenterdisksfolder=${vcenterdisksfolder:-$defvcenterdisksfolder}
+}
+function getvcentercluster {
+read -p "Enter vsphere cluster to use [$defvcentercluster]: " vcentercluster
+vcentercluster=${vcentercluster:-$defvcentercluster}
+}
+function printconfig {
+  echo
+  echo "Entered configuration:"
+  echo
+  echo "directorname = $directorname"
+  echo "internalcidr = $internalcidr"
+  echo "internalgw = $internalgw"
+  echo "internalip = $internalip"
+  echo "networkname = $networkname"
+  echo "vcenterdc = $vcenterdc"
+  echo "vcenterds = $vcenterds"
+  echo "vcenterip = $vcenterip"
+  echo "vcenteruser = $vcenteruser"
+  echo "vcentertemplatesfolder = $vcentertemplatesfolder"
+  echo "vcentervmsfolder = $vcentervmsfolder"
+  echo "vcenterdisksfolder = $vcenterdisksfolder"
+  echo "vcentercluster = $vcentercluster"
+}
+function proceed {
+read -p "Do you wish to proceed? [Y/N]: " response
+case "$response" in
+    [yY][eE][sS]|[yY])
+        return 0
+        ;;
+    *)
+        exit 1
+        ;;
+esac
+}
+
+getdirectorname
+getinternalcidr
+getinternalgw
+getinternalip
+getnetworkname
+getvcenterdc
+getvcenterds
+getvcenterip
+getvcenteruser
+getpassword
+getvcentertemplatesfolder
+getvcentervmsfolder
+getvcenterdisksfolder
+getvcentercluster
+printconfig
+proceed
+
+bosh create-env bosh-deployment/bosh.yml \
+  --state=./state.json \
+  --vars-store=./creds.yml \
+  -o bosh-deployment/vsphere/cpi.yml \
+  -v director_name=${directorname} \
+  -v internal_cidr=${internalcidr} \
+  -v internal_gw=${internalgw} \
+  -v internal_ip=${internalip} \
+  -v network_name=${networkname} \
+  -v vcenter_dc=${vcenterdc} \
+  -v vcenter_ds=${vcenterds} \
+  -v vcenter_ip=${vcenterip} \
+  -v vcenter_user=${vcenteruser} \
+  -v vcenter_password=${vcenterpassword} \
+  -v vcenter_templates=${vcentertemplatesfolder} \
+  -v vcenter_vms=${vcentervmsfolder} \
+  -v vcenter_disks=${vcenterdisksfolder} \
+  -v vcenter_cluster=${vcentercluster}
